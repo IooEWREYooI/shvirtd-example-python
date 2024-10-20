@@ -74,12 +74,30 @@ See 'snap info docker' for additional versions.
 - ```web```. Образ приложения должен ИЛИ собираться при запуске compose из файла ```Dockerfile.python``` ИЛИ скачиваться из yandex cloud container registry(из задание №2 со *). Контейнер должен работать в bridge-сети с названием ```backend``` и иметь фиксированный ipv4-адрес ```172.20.0.5```. Сервис должен всегда перезапускаться в случае ошибок.
 Передайте необходимые ENV-переменные для подключения к Mysql базе данных по сетевому имени сервиса ```web``` 
 
+```dockerfile
+  web:
+    image: myapp
+    restart: on-failure
+    environment:
+      - DB_HOST=172.20.0.10
+      - DB_TABLE=requests
+      - DB_USER=root
+      - DB_NAME=db1
+      - DB_PASSWORD=12345
+    depends_on:
+      - db
+    ports:
+      - 5000:5000
+    networks:
+      backend:
+        ipv4_address: 172.20.0.5
+```
+
 - ```db```. image=mysql:8. Контейнер должен работать в bridge-сети с названием ```backend``` и иметь фиксированный ipv4-адрес ```172.20.0.10```. Явно перезапуск сервиса в случае ошибок. Передайте необходимые ENV-переменные для создания: пароля root пользователя, создания базы данных, пользователя и пароля для web-приложения.Обязательно используйте уже существующий .env file для назначения секретных ENV-переменных!
 
-- *В целом именно на этом образе было большинство проблем, он тупо не запускался на 8 mySql в силу того что ранее где-то был запущен на 9.1 (не мной явно) и из-за этого выдавал ошибку даунгреда, пришлось прописать 9.1 mySql и не задавать никаких файлов для поднятия базы и база по факту была пустая*
-```  
+```dockerfile
 db:
-    image: mysql:9.1
+    image: mysql:8
     # NOTE: use of "mysql_native_password" is not recommended: https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
     # (this is just an example, not intended to be a production configuration)
     #command: --default-authentication-plugin=mysql_native_password
